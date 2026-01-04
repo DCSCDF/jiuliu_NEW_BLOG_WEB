@@ -22,6 +22,17 @@ console.info("%c jiuliuTOP %c v1.0 ", "padding: 2px 6px; border-radius: 3px 0 0 
 <style>
 @import './public/Comment/Comment.css';
 
+@font-face {
+    font-family: 'MyCustomFont';
+    src: url('@/public/ZhiyiMaru-Regular.ttf') format('woff2');
+
+    font-weight: normal;
+    font-style: normal;
+}
+
+body {
+    font-family: 'MyCustomFont', sans-serif;
+}
 /* 深色模式适配 */
 /* 默认浅色主题 */
 :root {
@@ -154,5 +165,30 @@ body {
 
 .rotate-180 {
     transform: rotate(180deg);
+}
+/* 滚动条整体部分 */
+::-webkit-scrollbar {
+    width: 5px;
+    height: 4px;
+}
+
+
+/* 滚动条轨道部分 */
+::-webkit-scrollbar-track {
+    background: #00000000;
+    border-radius: 4px;
+}
+
+
+/* 滚动条滑块部分 */
+::-webkit-scrollbar-thumb {
+    background: #8888882c;
+    border-radius: 4px;
+}
+
+
+/* 滚动条滑块:hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #5555552f;
 }
 </style>

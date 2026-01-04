@@ -5,7 +5,7 @@
 
             <div class="w-full h-10"></div>
 
-            <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-18">
                 <!-- 面包屑导航 -->
                 <div class="flex flex-col lg:flex-row gap-20 py-8">
                     <router-link to="/"
@@ -22,7 +22,7 @@
 
                 <!-- 主内容区域 -->
 
-                <div class="flex flex-col lg:flex-row lg:gap-20">
+                <div class="flex flex-col lg:flex-row lg:gap-8">
                     <!-- 文章内容区域 -->
                     <div class="w-full lg:w-3/4">
                         <!-- 文章标题区域 -->

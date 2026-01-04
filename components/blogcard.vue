@@ -19,7 +19,7 @@
                         'text-white bg-gray-800 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600': activeCategory === null,
                         'text-gray-600 bg-white hover:bg-gray-100 dark:text-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-700': activeCategory !== null
                     }">
-                    ✨ 全部
+                    <p class="mt-[2px] mr-[2px]">✨全部</p>
                 </button>
                 <button v-for="category in categories" :key="category.id" @click="toggleCategoryFilter(category.id)"
                     class="transition-all duration-300 px-3 mr-2 shadow-md py-1.5 border dark:border-gray-700 text-sm font-medium leading-5 text-center capitalize rounded-lg focus:outline-none"
@@ -27,7 +27,8 @@
                         'text-white bg-gray-800 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600': activeCategory === category.id,
                         'text-gray-600 bg-white hover:bg-gray-100 dark:text-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-700': activeCategory !== category.id
                     }">
-                    {{ category.emoji || '📄' }} {{ category.name }}
+                    <p class="mt-[2px] mr-[2px]">{{ category.emoji }} {{ category.name }}</p>
+
                 </button>
             </div>
         </div>

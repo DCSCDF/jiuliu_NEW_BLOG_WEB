@@ -3,7 +3,7 @@
         <!-- 搜索部分 -->
         <div class="flex">
             <div class="p-5 w-full">
-                <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">搜索文章</h3>
+                <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-4">搜索文章</h3>
                 <div class="space-y-3">
                     <div class="flex flex-col mb-1">
                         <div class="relative flex flex-row group">
@@ -16,17 +16,21 @@
                                         d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
                             </div>
-                            <input v-model="searchQuery" type="text" placeholder="输入关键词搜索" @input="handleSearchInput"
+                            <input v-model="searchQuery" type="text" placeholder="输入关键词" @input="handleSearchInput"
                                 @focus="isFocused = true" @blur="isFocused = false"
                                 class="block w-full py-1.5 pr-5 text-gray-700 dark:text-gray-200 bg-white/10 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg placeholder-gray-400/70 dark:placeholder-gray-500/70 pl-11 focus:pl-11 rtl:pr-11 rtl:pl-5 focus:border-blue-400 focus:ring-blue-300 focus:outline-none focus:ring focus:ring-opacity-40 transition-all duration-300 group-hover:border-blue-300">
                         </div>
-                        <span v-if="!searchQuery"
+                        <span
                             class="text-left mt-2 text-gray-600 dark:text-gray-400 line-clamp-3 transition-opacity duration-300">
-                            实时搜索网页内容
+                            实时检索网页内容
+                        </span>
+                        <!-- <span v-if="!searchQuery"
+                            class="text-left mt-2 text-gray-600 dark:text-gray-400 line-clamp-3 transition-opacity duration-300">
+                            实时检索网页内容
                         </span>
                         <span v-else class="text-left mt-2 text-gray-600 dark:text-gray-400 line-clamp-3">
                             搜索中...
-                        </span>
+                        </span> -->
                     </div>
                 </div>
             </div>
@@ -45,7 +49,7 @@
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <h2 class="text-gray-800 dark:text-gray-100 font-semibold text-xl">本站内容订阅</h2>
+                        <h2 class="text-gray-800 dark:text-gray-100 font-semibold text-xl">RSS本站内容订阅</h2>
                         <p class="text-gray-500 dark:text-gray-400 text-sm">实时获取最新内容更新</p>
                     </div>
                 </div>

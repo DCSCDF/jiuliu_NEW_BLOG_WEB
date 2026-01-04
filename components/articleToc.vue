@@ -16,9 +16,7 @@
 
         <!-- 内容插槽 -->
         <template #default>
-            <h3 class="text-lg mb-4 mt-10 lg:mt-0 font-semibold text-gray-700 dark:text-gray-300 px-6 pt-12 pt-3 px-0">
-                本页内容
-            </h3>
+
             <nav v-if="headings.length > 0">
                 <ul>
                     <li v-for="(item, index) in headings" :key="index"
@@ -244,3 +242,4 @@ onUnmounted(() => {
     clearTimeout(scrollDebounce)
 })
 </script>
+

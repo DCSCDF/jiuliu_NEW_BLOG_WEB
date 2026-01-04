@@ -16,15 +16,20 @@
                     <div class="2xl:w-2/5 2xl:my-20">
                         <!-- 移动端悬浮按钮 -->
                         <button
-                            class="fixed bottom-12 right-10 2xl:hidden z-50 p-4 bg-white dark:bg-gray-800 rounded-full shadow-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                            class="fixed bottom-12 right-10 2xl:hidden z-50 px-5 py-3 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 hover:shadow-xl flex items-center space-x-1"
                             @click="toggleSidebar">
-                            <svg width="26" height="26" t="1746976275842" class="icon" viewBox="0 0 1028 1024"
-                                version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="9831">
+                            <svg width="20" height="20" viewBox="0 0 1028 1024" version="1.1"
+                                xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0">
                                 <path
                                     d="M7.856789 602.079857c158.044987 2.617399 316.007318 3.788341 473.882404 3.512825A56865.980269 56865.980269 0 0 1 482.519821 2.805668 3854.340592 3854.340592 0 0 0 15.975318 25.710206a3762.015283 3762.015283 0 0 0-8.118529 576.369651zM54.308735 1002.280179a3557.0913 3557.0913 0 0 0 430.653991 21.141238c-1.322475-115.702816-2.291372-231.506655-2.897506-347.406924-156.378117 0.518888-312.834296-1.653094-469.377722-6.520538a3835.297865 3835.297865 0 0 0 41.621237 332.786224zM543.62461 1022.250475c143.557453-4.059265 287.105722-16.843193 430.658583-38.360968 30.269991-177.17496 47.498906-354.267265 51.686744-531.276915a27595.367318 27595.367318 0 0 0-479.314654-6.088897c-0.298475 192.167605-1.304108 384.078063-3.030673 575.72678zM546.072108 4.07304c0.514296 124.147372 0.734709 248.18913 0.656645 372.120682 160.152682 1.235229 320.213525 5.115408 480.191713 11.649722a3611.202583 3611.202583 0 0 0-14.303856-342.218045C857.097184 22.316771 701.58235 8.467516 546.072108 4.07304z"
-                                    fill="#84ADDD" p-id="9832" class="dark:fill-blue-400"></path>
+                                    fill="#84ADDD" class="dark:fill-blue-400">
+                                </path>
                             </svg>
+                            <span
+                                class="text-sm pt-1 font-bold text-gray-500 dark:text-gray-300 whitespace-nowrap tracking-wide leading-tight">侧边栏</span>
                         </button>
+
+
 
                         <!-- 侧边栏内容 -->
                         <div :class="[
