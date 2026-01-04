@@ -1,9 +1,10 @@
 import { defineNuxtConfig } from 'nuxt/config'
 import typography from '@tailwindcss/typography'
 
-
 export default defineNuxtConfig({
+
     app: {
+        pageTransition: { name: 'page', mode: 'out-in' },
         head: {
             htmlAttrs: {
                 lang: 'zh-CN'
@@ -13,14 +14,23 @@ export default defineNuxtConfig({
             ]
         }
     },
-
+    routeRules: {
+        '/page/:page': { prerender: true }
+    },
     devtools: { enabled: true },
-
     modules: [
         '@nuxtjs/tailwindcss',
         '@bg-dev/nuxt-naiveui',
-
+        // 'nuxt-module-feed'
+        '@nuxtjs/color-mode',
     ],
+    colorMode: {
+        preference: 'system', // 默认跟随系统
+        fallback: 'light',    // 无法检测系统时的回退
+        storageKey: 'nuxt-color-mode-scheme', // 明确的存储键
+        classSuffix: '',      // 无后缀
+        componentName: 'ColorScheme' // 明确组件名
+    },
 
     tailwindcss: {
         config: {
@@ -52,17 +62,9 @@ export default defineNuxtConfig({
             }
         }
     },
-
     devServer: {
         port: 3001,
         host: '0.0.0.0'
     },
-    // router: {
-    //     options: {
-    //         history: true
-    //     } as {}
-    // },
     compatibilityDate: '2025-04-21'
 })
-
-

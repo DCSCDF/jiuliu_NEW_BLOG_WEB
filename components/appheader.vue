@@ -1,11 +1,12 @@
 <template>
-    <header class="sticky top-0 left-0 right-0 z-50 duration-300 flex justify-center">
-        <nav class="bg-gray-900/5 mt-4 rounded-xl border border-gray-900/5 backdrop-blur-md bg-white/90 
-                    duration-300 hover:shadow-lg hover:bg-white/95 w-[calc(100%-3rem)] max-w-4xl
-                    shadow-[0_15px_20px_-12px_rgba(0,0,0,0.05)]">
+    <header class="sticky top-0 left-0 right-0 z-40 duration-300 flex justify-center">
+        <nav class="dark:bg-gray-800/60 dark:border-gray-700/50 mt-4 rounded-xl border border-gray-900/5 backdrop-blur-md bg-white/70 
+                    duration-300 hover:shadow-lg w-[calc(100%-3rem)] max-w-4xl
+                    shadow-[0_15px_20px_-12px_rgba(0,0,0,0.05)] dark:hover:shadow-gray-700/20">
             <div class="flex items-center justify-between px-4 h-[52px]">
-                <!-- Logo 左对齐 -->
-                <div class="flex items-center h-full space-x-2 group">
+                <!-- Logo 左对齐 - 添加深色模式适配 -->
+                <div
+                    class="flex items-center dark:brightness-75 h-full w-20 space-x-2 group transition-all duration-300">
                     <svg t="1744850599293" class="icon" viewBox="0 0 1024 1024" version="1.1"
                         xmlns="http://www.w3.org/2000/svg" p-id="1971" width="40" height="40">
                         <path
@@ -47,180 +48,128 @@
                     </svg>
                 </div>
 
-                <!-- 桌面导航链接 -->
+                <!-- 桌面导航链接  -->
                 <div class="hidden md:flex items-center h-full space-x-6">
                     <NuxtLink v-for="link in navLinks" :key="link.path" :to="link.path"
-                        @click.prevent="handleNavClick(link)"
+                        @click.prevent="() => handleNavClick(link)"
                         class="text-[14px] transition-colors duration-300 flex items-center h-full leading-none relative group"
-                        :class="{ 'text-blue-600': isActive(link.path), 'text-gray-800': !isActive(link.path) }">
+                        :class="{
+                            'text-blue-600 dark:text-blue-400': isActive(link.path),
+                            'text-gray-800 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400': !isActive(link.path)
+                        }">
                         {{ link.name }}
                         <span :class="{ 'w-full': isActive(link.path), 'w-0': !isActive(link.path) }"
-                            class="absolute bottom-0 left-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full">
+                            class="absolute bottom-0 dark:bg-blue-400 left-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full">
                         </span>
                     </NuxtLink>
                     <a v-for="links in titleLinks" :href="links.path" target="_blank" rel="noopener noreferrer"
-                        class="text-[14px] text-gray-800 hover:text-blue-600 transition-colors duration-300 flex items-center h-full leading-none relative group">
+                        class="text-[14px] text-gray-800 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-300 flex items-center h-full leading-none relative group">
                         {{ links.name }}
                         <span
-                            class="absolute bottom-0 left-0 h-0.5 bg-blue-600 transition-all duration-300 w-0 group-hover:w-full"></span>
+                            class="absolute bottom-0 left-0 h-0.5 bg-blue-600 dark:bg-blue-400 transition-all duration-300 w-0 group-hover:w-full"></span>
                     </a>
                 </div>
 
-                <!-- 移动端汉堡菜单按钮 -->
-                <button @click="toggleMobileMenu"
-                    class="md:hidden p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <svg class="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 6h16M4 12h16M4 18h16"></path>
-                    </svg>
-                </button>
+                <!-- 暗色模式切换按钮 -->
+                <div class="w-20 hidden md:flex">
+                    <DarkButton></DarkButton>
+                </div>
+                <div class="md:hidden flex">
+                    <div>
+                        <DarkButton></DarkButton>
+                    </div>
+                    <!-- 移动端汉堡菜单按钮  -->
+                    <button class="rounded-md ml-4">
+                        <svg @click="toggleMobileMenu"
+                            class="w-6 h-6 mx-2 my-auto text-gray-800 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
-            <!-- 移动端下拉菜单 -->
+            <!-- 移动端下拉菜单  -->
             <div class="md:hidden overflow-hidden transition-all duration-300 ease-in-out"
                 :class="{ 'max-h-0': !mobileMenuOpen, 'max-h-96': mobileMenuOpen }">
                 <div class="px-4 py-2 space-y-2">
                     <NuxtLink v-for="link in navLinks" :key="link.path" :to="link.path"
                         @click.prevent="() => { handleNavClick(link); mobileMenuOpen = false }"
                         class="block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200" :class="{
-                            'bg-blue-100 text-blue-700': isActive(link.path),
-                            'text-gray-700 hover:bg-gray-100': !isActive(link.path)
+    'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400': isActive(link.path),
+    'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50': !isActive(link.path)
                         }">
                         {{ link.name }}
                     </NuxtLink>
-                    <a href="https://www.travellings.cn/go.html" target="_blank" rel="noopener noreferrer"
-                        class="block px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors duration-200">
-                        开往
+                    <a v-for="links in titleLinks" :href="links.path" target="_blank" rel="noopener noreferrer"
+                        class="block px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors duration-200">
+                        {{ links.name }}
                     </a>
                 </div>
             </div>
         </nav>
     </header>
 
-    <!-- 动态背景保持不变 -->
-    <div class="fixed inset-0 -z-50 bg-[length:200%_200%] animate-gradient 
-                bg-gradient-to-tr from-blue-400/40 via-white/70 to-blue-400/70"></div>
+    <!-- 动态背景  -->
+    <div class="fixed inset-0 -z-50 
+            bg-[length:200%_200%] animate-gradient 
+            bg-gradient-to-tr from-blue-400/40 via-white/70 to-blue-400/70
+            dark:bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))]
+            dark:from-gray-800 dark:via-gray-600 dark:to-gray-800">
+    </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useMessage } from 'naive-ui'
+import { useRoute } from 'vue-router'
+import { getFixedData } from '../utils/fixedDataApi'
 
-const message = useMessage()
+
 const route = useRoute()
-const router = useRouter()
 
 // 移动端菜单状态
 const mobileMenuOpen = ref(false)
-
-// 状态管理
-const authState = ref({
-    isLoggedIn: false,
-    isLoading: false,
-    lastCheck: 0
-})
 
 const navLinks = [
     { name: '主页', path: '/' },
     { name: '留言', path: '/guestbook' },
     { name: '友情链接', path: '/links' },
     { name: '管理', path: '/admin', requiresAuth: true },
-
 ]
-const titleLinks = [
-    { name: '开往', path: 'https://www.travellings.cn/go.html' },
 
-]
+const titleLinks = ref([])
+
+// 获取外部链接数据
+const fetchTitleLinks = async () => {
+    try {
+        const response = await getFixedData('custom_links')
+        if (response.code === 200 && response.data?.content) {
+            const linksData = JSON.parse(response.data.content)
+            titleLinks.value = Array.isArray(linksData) ? linksData : []
+        }
+    } catch (error) {
+        console.error('获取外部链接失败:', error)
+        titleLinks.value = []
+    }
+}
+
+// 导航点击处理函数
+const handleNavClick = (link) => {
+
+}
 
 // 切换移动端菜单
 const toggleMobileMenu = () => {
     mobileMenuOpen.value = !mobileMenuOpen.value
 }
 
-// 修复：正确定义 isActive 函数
+// 检查当前路由是否激活
 const isActive = (path) => {
     return route.path === path
 }
 
-// 带缓存的认证检查
-const checkAuthStatus = async () => {
-    // 5秒内不重复检查
-    if (Date.now() - authState.value.lastCheck < 5000 && authState.value.isLoggedIn) {
-        return authState.value.isLoggedIn
-    }
-
-    authState.value.isLoading = true
-    const token = localStorage.getItem('admin_token')
-
-    if (!token) {
-        authState.value = {
-            isLoggedIn: false,
-            isLoading: false,
-            lastCheck: Date.now()
-        }
-        return false
-    }
-
-    try {
-        const { isLoggedIn } = await checkLoginStatus(token)
-        authState.value = {
-            isLoggedIn,
-            isLoading: false,
-            lastCheck: Date.now()
-        }
-        return isLoggedIn
-    } catch (error) {
-        console.error('验证失败:', error)
-        authState.value = {
-            isLoggedIn: false,
-            isLoading: false,
-            lastCheck: Date.now()
-        }
-        return false
-    }
-}
-
-// 安全跳转函数
-const safeNavigate = (path) => {
-    if (route.path !== path) {
-        router.push(path)
-    }
-}
-
-const handleNavClick = async (link) => {
-    if (!link.requiresAuth) {
-        safeNavigate(link.path)
-        return
-    }
-
-    if (authState.value.isLoading) return
-
-    let loadingMsg = null
-    try {
-        loadingMsg = message.loading('验证中...', { duration: 0 })
-        const isAuthed = await checkAuthStatus()
-
-        message.destroyAll()
-        if (isAuthed) {
-            message.success('已认证', { duration: 1500 })
-            safeNavigate('/admin/dashboard')
-        } else {
-            message.warning('请先登录', { duration: 1500 })
-            safeNavigate('/admin')
-        }
-    } catch (error) {
-        message.destroyAll()
-        message.error('验证出错', { duration: 1500 })
-        safeNavigate('/admin')
-    } finally {
-        loadingMsg?.destroy()
-    }
-}
-
-// 初始化检查
 onMounted(() => {
-    checkAuthStatus()
+    fetchTitleLinks()
 })
 </script>

@@ -1,16 +1,62 @@
 <template>
+    <!-- 添加深色模式背景色过渡 -->
+    <div>
+        <transition name="fade" mode="out-in">
+            <div v-if="loading" key="loading" class="container mx-auto flex w-full mt-20">
+                <div class="items-center w-full 2xl:w-2/3 px-6">
+                    <div class="mx-auto max-w-2xl flex flex-col">
+                        <!-- 更新骨架屏颜色适配深色模式 -->
+                        <div class="h-12 w-3/4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-4"></div>
+                        <!-- <div class="h-12 w-1/2 bg-blue-200 dark:bg-blue-800 rounded animate-pulse mb-6"></div> -->
 
-    <div class="container mx-auto mx-auto flex w-full mt-20">
-        <div class="items-center w-full 2xl:w-2/3 px-6">
-            <div class="mx-auto max-w-2xl flex flex-col ">
-                <h1 class="text-4xl font-semibold text-gray-800 lg:text-5xl">
-                    Welcome to My <br> <span class="text-blue-500 ">Digital Garden</span></h1>
-                <p class="mt-3 text-[16px] text-gray-600">
-                    不知名独立开发者，影视行业从业。会在这里分享一些技术方面的文章或者发一些生活记录。
-                    本博客由博主独立开发，如果想获取本站源码，可以加我qq：3209174373。
-                </p>
+                        <div class="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-3"></div>
+                        <div class="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
 
+            <div v-else key="content" class="mt-20">
+                <!-- 为动态内容添加深色模式样式 -->
+                <div v-html="homepageContent"></div>
+            </div>
+        </transition>
+    </div>
 </template>
+<script setup>
+import { ref, onMounted } from 'vue'
+import { getFixedData } from '../utils/fixedDataApi'
+
+const loading = ref(true)
+const homepageContent = ref('')
+
+const fetchHomepageContent = async () => {
+    try {
+        loading.value = true
+        const response = await getFixedData('welcome_message')
+        if (response.code === 200 && response.data?.content) {
+            homepageContent.value = response.data.content
+        }
+    } catch (err) {
+        console.error('获取welcome_message失败:', err)
+    } finally {
+        loading.value = false
+    }
+}
+
+onMounted(() => {
+    fetchHomepageContent()
+})
+</script>
+
+<style>
+/* 添加缓入缓出动画 */
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.1s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+</style>

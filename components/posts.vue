@@ -82,6 +82,10 @@
                                     class="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-500">
                                     创建时间
                                 </th>
+                                <th scope="col"
+                                    class="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-500">
+                                    状态
+                                </th>
                                 <th scope="col" class="relative py-3.5 px-4">
                                     <span class="sr-only">操作</span>
                                 </th>
@@ -106,13 +110,33 @@
                                     {{ formatDate(blog.create_time) }}
                                 </td>
                                 <td class="px-4 py-4 text-sm whitespace-nowrap">
+                                    <span :class="{
+                                        'px-3 py-1 rounded-full text-sm': true,
+                                        'bg-red-100 text-red-800': blog.is_hidden,
+                                        'bg-green-100 text-green-800': !blog.is_hidden
+                                    }">
+                                        {{ blog.is_hidden ? '已隐藏' : '已发布' }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-4 text-sm whitespace-nowrap">
                                     <div class="flex items-center gap-x-6">
-                                        <button @click="editBlog(blog)"
-                                            class="text-gray-500 transition-colors duration-200 hover:text-blue-500">
+                                        <!-- {{ blog.is_hidden ? '已隐藏' : '已发布' }} -->
+                                        <button @click="!blog.is_hidden && editBlog(blog)" :class="{
+                                            'text-gray-500 hover:text-blue-500': !blog.is_hidden,
+                                            'text-gray-200 cursor-not-allowed': blog.is_hidden
+                                        }" class="transition-colors duration-200" :disabled="blog.is_hidden">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                 stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
                                                     d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                            </svg>
+                                        </button>
+                                        <button @click="toggleHiddenStatus(blog)"
+                                            class="text-gray-500 transition-colors duration-200 hover:text-yellow-500">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
                                             </svg>
                                         </button>
                                         <button @click="deleteBlog(blog)"
@@ -217,7 +241,8 @@
                 <n-upload :theme-overrides="themeOverrides" v-model:file-list="fileList" list-type="image-card" :max="1"
                     class="rounded-lg w-full" @change="handleUploadChange" :show-retry-button="false"
                     :show-cancel-button="false" :show-remove-button="true" :show-file-list="true" :auto-upload="false">
-                    <template #default> </template>
+                    <template #default>
+                    </template>
                 </n-upload>
             </n-form-item>
 
@@ -259,6 +284,33 @@
             </div>
         </template>
     </n-modal>
+
+    <!-- 切换隐藏状态确认对话框 -->
+    <n-modal v-model:show="showToggleHiddenModal" preset="dialog" title="确认操作" class="rounded-xl">
+        <template #header>
+            <div class="text-lg font-medium text-gray-800">
+                {{ currentBlog.is_hidden ? '取消隐藏文章' : '隐藏文章' }}
+            </div>
+        </template>
+        <div class="py-4 text-gray-600">
+            确定要将文章 "{{ currentBlog.title }}" {{ currentBlog.is_hidden ? '取消隐藏' : '设为隐藏' }}吗？
+            {{ currentBlog.is_hidden ? '取消隐藏后文章将对所有用户可见。' : '隐藏后文章将不会在公开页面显示。' }}
+        </div>
+        <template #action>
+            <div class="flex justify-end gap-3">
+                <n-button @click="showToggleHiddenModal = false"
+                    class="text-gray-600 hover:bg-gray-100 transition-colors">
+                    取消
+                </n-button>
+                <n-button type="warning" @click="confirmToggleHidden" :loading="togglingHidden"
+                    class="bg-yellow-500 hover:bg-yellow-600 transition-colors">
+                    {{ currentBlog.is_hidden ? '取消隐藏' : '确认隐藏' }}
+                </n-button>
+            </div>
+        </template>
+    </n-modal>
+
+
 </template>
 
 <script setup>
@@ -301,29 +353,27 @@ const handleSubmit = async () => {
             throw new Error('未找到认证token');
         }
 
-        // 调试日志
-        // console.log('开始处理图片...');
+        // console.log('处理图片...');
 
-        // 1. 先清理富文本编辑器中的已删除图片
         if (richTextEditor.value && typeof richTextEditor.value.cleanupDeletedImages === 'function') {
-            // console.log('清理富文本编辑器中的已删除图片...');
+            // console.log('清理已删除图片...');
             try {
                 await richTextEditor.value.cleanupDeletedImages();
-                // console.log('富文本编辑器图片清理完成');
+                // console.log('图片清理完成');
             } catch (error) {
                 console.error('清理编辑器图片失败:', error);
                 message.warning('清理编辑器图片失败，但文章将继续保存');
             }
         }
 
-        // 获取当前图片URL（如果有）
+        // 获取当前图片URL
         const oldImageUrl = currentBlog.value.img_url;
         let newImageUrl = oldImageUrl;
 
-        // 情况1: 用户上传了新图片
+        //  用户上传了新图片
         const pendingFiles = fileList.value.filter(f => f.status === 'pending');
         if (pendingFiles.length > 0) {
-            // console.log('检测到新上传的封面图片，开始上传...');
+            // console.log('开始上传...');
             const file = pendingFiles[0];
 
             // 先上传新图片
@@ -475,7 +525,7 @@ const editBlog = async (blog) => {
 
         showModal.value = true;
     } catch (error) {
-        message.error(`获取文章详情失败: ${error.message}`);
+        message.error(`获取文章详情失败(如果隐藏了请发布后重试): ${error.message}`);
     } finally {
         loading.value = false;
     }
@@ -494,18 +544,53 @@ const searchKeyword = ref('')
 const selectedCategory = ref('')
 const showModal = ref(false)
 const showDeleteConfirm = ref(false)
+const showToggleHiddenModal = ref(false) // 切换隐藏状态模态框
 const submitting = ref(false)
 const deleting = ref(false)
-
+const togglingHidden = ref(false) // 切换隐藏状态加载状态
 const currentBlog = ref({
     id: '',
     title: '',
     categoryId: null,
     content: '',
-    img_url: ''
+    img_url: '',
+    is_hidden: false
 })
 const fileList = ref([])
 
+// 切换隐藏状态
+const toggleHiddenStatus = (blog) => {
+    currentBlog.value = { ...blog }
+    showToggleHiddenModal.value = true
+}
+
+// 确认切换隐藏状态
+const confirmToggleHidden = async () => {
+    try {
+        togglingHidden.value = true;
+
+        // 确保使用 await 等待 API 调用完成
+        const result = await blogApi.toggleBlogHidden(currentBlog.value.id);
+
+        if (result.code === 200) {
+            message.success(`文章已${currentBlog.value.is_hidden ? '取消隐藏' : '隐藏'}`);
+
+            // 更新本地状态
+            const index = blogList.value.findIndex(b => b.id === currentBlog.value.id);
+            if (index !== -1) {
+                blogList.value[index].is_hidden = !blogList.value[index].is_hidden;
+            }
+        } else {
+            throw new Error(result.msg || '操作失败');
+        }
+    } catch (error) {
+        console.error('切换隐藏状态失败:', error);
+        message.error(`切换隐藏状态失败: ${error.message}`);
+    } finally {
+        togglingHidden.value = false;
+        showToggleHiddenModal.value = false;
+    }
+}
 // 分页配置
 const pagination = ref({
     page: 1,
@@ -581,8 +666,8 @@ const fetchBlogs = async () => {
             page: pagination.value.page,
             pageSize: pagination.value.pageSize
         }
-
-        const result = await blogApi.searchBlogs(params)
+        let admin = true //确认是管理员访问
+        const result = await blogApi.searchBlogsAdmin(params, admin)
         blogList.value = result.data.rows
         pagination.value.itemCount = result.data.count
     } catch (error) {
@@ -692,5 +777,23 @@ button {
         height: 28px;
         font-size: 14px;
     }
+}
+
+/* 状态标签样式 */
+.status-label {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+}
+
+.status-hidden {
+    background-color: rgb(254 226 226);
+    color: rgb(153 27 27);
+}
+
+.status-visible {
+    background-color: rgb(220 252 231);
+    color: rgb(22 101 52);
 }
 </style>

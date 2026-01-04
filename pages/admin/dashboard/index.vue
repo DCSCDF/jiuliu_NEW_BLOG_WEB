@@ -72,8 +72,7 @@
                 :class="{ 'translate-x-0': sidebarVisible, '-translate-x-full': !sidebarVisible }">
                 <!-- 侧边栏头部 -->
                 <div class="flex items-center justify-between p-4 border-b border-gray-200">
-                    <h2
-                        class="text-xl font-semibold text-gray-800 transform transition-transform duration-300 hover:scale-105">
+                    <h2 class="text-xl font-semibold text-gray-800 transform transition-transform duration-300">
                         后台管理</h2>
                     <button @click="toggleSidebar"
                         class="p-1 rounded-md hover:bg-gray-100 transition-colors duration-200">
@@ -173,31 +172,32 @@
 
                             <div v-if="activeRoute === 'settings' && contentLoaded"
                                 class="bg-white/80 backdrop-blur-sm rounded-lg shadow-sm p-6 transform transition-all duration-300 hover:shadow-md">
-                                <h2 class="text-2xl font-semibold mb-4 transform">
-                                    系统设置</h2>
-                                <p class="text-gray-600 mb-6">这里是系统设置页面。</p>
+                                <settings></settings>
                             </div>
                         </div>
                     </transition>
                 </div>
             </main>
         </div>
+
+        <n-modal v-model:show="showLogoutConfirm" preset="dialog" content="您确定要退出登录吗？" positive-text="确认"
+            negative-text="取消" @positive-click="confirmLogout" @negative-click="cancelLogout" />
     </div>
 
-    <n-modal v-model:show="showLogoutConfirm" preset="dialog" content="您确定要退出登录吗？" positive-text="确认" negative-text="取消"
-        @positive-click="confirmLogout" @negative-click="cancelLogout" />
 </template>
+
 
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
 import { logout, checkLoginStatus } from '../../../utils/adminapi';
 import { NModal, useMessage } from 'naive-ui';
+import { useRouter } from 'vue-router';
+
+
 const message = useMessage();
-
 const router = useRouter();
-
+const SEO = await getSeoConfig();
 // 添加登出确认相关状态
 const showLogoutConfirm = ref(false);
 const logoutPending = ref(false);
@@ -231,17 +231,17 @@ const menuItems = ref([
         mobileShow: true
     },
     {
-        name: '链接管理',
+        name: '友链管理',
         route: 'links',
         icon: LinkIcon,
         mobileShow: true
     },
-    // {
-    //     name: '系统设置',
-    //     route: 'settings',
-    //     icon: CogIcon,
-    //     mobileShow: false
-    // },
+    {
+        name: '设置',
+        route: 'settings',
+        icon: CogIcon,
+        mobileShow: true
+    },
     {
         type: 'divider'
     },
@@ -262,7 +262,7 @@ const menuItems = ref([
 // 计算属性，根据设备类型过滤菜单项
 const allMenuItems = computed(() => {
     // 在SSR环境下直接返回所有菜单项
-    if (process.server) return menuItems.value;
+    if (import.meta.server) return menuItems.value;
 
     // 客户端环境下根据窗口宽度过滤
     return menuItems.value.filter(item => {
@@ -347,7 +347,7 @@ useHead({
 // 初始化
 onMounted(async () => {
     // 确保在客户端环境下执行
-    if (process.client) {
+    if (import.meta.client) {
         // 从localStorage获取token
         token.value = localStorage.getItem('admin_token') || '';
 

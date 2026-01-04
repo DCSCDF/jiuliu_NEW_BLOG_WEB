@@ -2,23 +2,23 @@
 export default {
     common: {
         textColorBase: "white",
-        primaryColor: "#3b82f6",  // 标准蓝色
-        primaryColorHover: "#60a5fa",  // 浅一点的蓝色
-        primaryColorPressed: "#2563eb",  // 深一点的蓝色
-        primaryColorSuppl: "#1d4ed8",  // 更深的蓝色
-        infoColor: "#93c5fd",  // 浅蓝色
-        infoColorHover: "#bfdbfe",  // 更浅的蓝色
+        primaryColor: "#3b82f6",
+        primaryColorHover: "#60a5fa",
+        primaryColorPressed: "#2563eb",
+        primaryColorSuppl: "#1d4ed8",
+        infoColor: "#93c5fd",
+        infoColorHover: "#bfdbfe",
         infoColorPressed: "#60a5fa",
         infoColorSuppl: "#3b82f6",
-        successColor: "#3b82f6",  // 保持绿色
+        successColor: "#3b82f6",
         successColorHover: "#60a5fa",
         successColorPressed: "#2563eb",
         successColorSuppl: "#1d4ed8",
-        warningColor: "#f59e0b",  // 橙色
+        warningColor: "#f59e0b",
         warningColorHover: "#fbbf24",
         warningColorPressed: "#d97706",
         warningColorSuppl: "#b45309",
-        errorColor: "#ef4444",  // 红色
+        errorColor: "#ef4444",
         errorColorHover: "#f87171",
         errorColorPressed: "#dc2626",
         errorColorSuppl: "#b91c1c"

@@ -191,14 +191,13 @@
 import BlogApi from '../utils/blogapi'
 import CategoryService from '../utils/category'
 
-const router = useRouter()
 const route = useRoute()
 
 // 常量
 const PAGE_SIZE = 6
 const MIN_LOADING_TIME = 300 // 最小加载时间300ms
 
-// 响应式状态
+// 响应式状态https://tailwindcss.com/
 const blogs = ref([])
 const categories = ref([])
 const totalCount = ref(0)
@@ -302,16 +301,6 @@ const fetchData = async () => {
     }
 }
 
-// 服务器端数据获取
-const { data } = await useAsyncData('blog-list', async () => {
-    await fetchData()
-    return {
-        blogs: blogs.value,
-        categories: categories.value,
-        totalCount: totalCount.value,
-        activeCategory: activeCategory.value
-    }
-})
 
 // 客户端路由变化监听
 onMounted(() => {

@@ -1,6 +1,6 @@
 <template>
-    <div style="border: 1px solid #ccc; margin-top: 10px; border-radius: 8px;">
-        <div style="margin: 10px">
+    <div style="border:1px solid #ccc; margin-top: 10px; border-radius: 8px;">
+        <div style="margin:10px">
             <Toolbar :editor="editorRef" :defaultConfig="toolbarConfig" :mode="mode"
                 style="border-bottom: 1px solid #ccc" />
             <Editor :defaultConfig="editorConfig" :mode="mode" v-model="valueHtml"
@@ -16,7 +16,23 @@ import { Editor, Toolbar } from '@wangeditor/editor-for-vue';
 import axios from 'axios';
 import Compressor from 'compressorjs';
 
+// 在setup中初始化
+const initialize = async () => {
+    try {
+        if (!LSKY_CONFIG._initialized) {
+            await initLskyConfig();
+        }
 
+        // 安全使用
+        api.defaults.baseURL = LSKY_CONFIG.baseUrl;
+    } catch (error) {
+        console.error('初始化失败:', error);
+        // 可以设置UI状态提示用户
+    }
+};
+onMounted(() => {
+    initialize();
+});
 
 const mode = ref('default');
 const editorRef = shallowRef();
@@ -37,6 +53,7 @@ const toolbarConfig = {
         'group-video'
     ]
 };
+
 
 // 4. 定义API相关变量和函数
 let authToken = null;
@@ -228,7 +245,7 @@ const cleanupDeletedImages = async () => {
     }
 };
 
-// 7. 组件生命周期和props
+//  组件生命周期和props
 const props = defineProps({
     modelValue: {
         type: String,

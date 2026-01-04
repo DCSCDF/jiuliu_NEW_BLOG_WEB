@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class CategoryService {
@@ -13,11 +14,11 @@ export default class CategoryService {
     /**
      * 处理API响应
      * @private
-     * @param {Response} response - fetch响应对象
-     * @returns {Promise<Object>} 解析后的JSON数据
+     * @param {Object} response - axios响应对象
+     * @returns {Object} 处理后的响应数据
      */
-    async _handleResponse(response) {
-        const requestId = response.headers.get('X-Request-ID') || this._generateRequestId();
+    _handleResponse(response) {
+        const requestId = response.config.headers['X-Request-ID'] || this._generateRequestId();
 
         // 处理401未授权情况
         if (response.status === 401) {
@@ -26,22 +27,35 @@ export default class CategoryService {
             throw new Error('认证过期，请重新登录');
         }
 
-        const data = await response.json().catch(() => ({}));
+        return response.data;
+    }
 
-        if (!response.ok) {
-            console.error(`[${requestId}] API请求失败:`, {
-                status: response.status,
-                url: response.url,
-                error: data.msg || '未知错误'
-            });
+    /**
+     * 处理API错误
+     * @private
+     * @param {Object} error - axios错误对象
+     * @throws {Error} 抛出自定义错误
+     */
+    _handleError(error) {
+        const requestId = error.config?.headers['X-Request-ID'] || this._generateRequestId();
+        const response = error.response;
 
-            const error = new Error(data.msg || `请求失败，状态码: ${response.status}`);
-            error.code = response.status;
-            error.requestId = requestId;
-            throw error;
+        if (response?.status === 401) {
+            console.error(`[${requestId}] 认证失败: 请重新登录`);
+            window.location.href = '/admin';
+            throw new Error('认证过期，请重新登录');
         }
 
-        return data;
+        console.error(`[${requestId}] API请求失败:`, {
+            status: response?.status,
+            url: error.config?.url,
+            error: response?.data?.msg || '未知错误'
+        });
+
+        const err = new Error(response?.data?.msg || `请求失败，状态码: ${response?.status || '无响应'}`);
+        err.code = response?.status;
+        err.requestId = requestId;
+        throw err;
     }
 
     /**
@@ -54,12 +68,23 @@ export default class CategoryService {
     }
 
     /**
-     * 构造请求头
+     * 构造请求配置
      * @private
-     * @param {boolean} [withAuth=true] - 是否包含认证头
-     * @returns {Object} 请求头
+     * @param {Object} [options={}] - 额外配置选项
+     * @param {boolean} [options.withAuth=true] - 是否包含认证头
+     * @param {string} [options.method='get'] - 请求方法
+     * @param {Object} [options.data] - 请求体数据
+     * @param {Object} [options.params] - 查询参数
+     * @returns {Object} axios请求配置
      */
-    _getHeaders(withAuth = true) {
+    _getConfig(options = {}) {
+        const {
+            withAuth = true,
+            method = 'get',
+            data,
+            params
+        } = options;
+
         const headers = {
             'Content-Type': 'application/json',
             'X-Request-ID': this._generateRequestId()
@@ -72,7 +97,12 @@ export default class CategoryService {
             }
         }
 
-        return headers;
+        return {
+            method,
+            headers,
+            data,
+            params
+        };
     }
 
     /**
@@ -91,10 +121,12 @@ export default class CategoryService {
      */
     async getCategoryList() {
         try {
-            const response = await fetch(`${API_BASE_URL}/category/list`, {
-                headers: this._getHeaders(false) // 公开接口不需要认证
-            });
-            const result = await this._handleResponse(response);
+            const response = await axios.get(
+                `${API_BASE_URL}/category/list`,
+                this._getConfig({ withAuth: false })
+            );
+
+            const result = this._handleResponse(response);
 
             // 确保每个分类都有blog_count属性
             if (result.data) {
@@ -106,8 +138,7 @@ export default class CategoryService {
 
             return result;
         } catch (error) {
-            console.error('获取分类列表失败:', error);
-            throw error;
+            this._handleError(error);
         }
     }
 
@@ -124,15 +155,14 @@ export default class CategoryService {
      */
     async addCategory(name) {
         try {
-            const response = await fetch(`${API_BASE_URL}/category/add`, {
-                method: 'POST',
-                headers: this._getHeaders(),
-                body: JSON.stringify({ name })
-            });
+            const response = await axios.post(
+                `${API_BASE_URL}/category/add`,
+                { name },
+                this._getConfig()
+            );
             return this._handleResponse(response);
         } catch (error) {
-            console.error('添加分类失败:', error);
-            throw error;
+            this._handleError(error);
         }
     }
 
@@ -148,15 +178,14 @@ export default class CategoryService {
      */
     async updateCategory(id, name) {
         try {
-            const response = await fetch(`${API_BASE_URL}/category/update`, {
-                method: 'PUT',
-                headers: this._getHeaders(),
-                body: JSON.stringify({ id, name })
-            });
+            const response = await axios.put(
+                `${API_BASE_URL}/category/update`,
+                { id, name },
+                this._getConfig()
+            );
             return this._handleResponse(response);
         } catch (error) {
-            console.error('更新分类失败:', error);
-            throw error;
+            this._handleError(error);
         }
     }
 
@@ -172,14 +201,15 @@ export default class CategoryService {
      */
     async deleteCategory(id) {
         try {
-            const response = await fetch(`${API_BASE_URL}/category/delete?id=${id}`, {
-                method: 'DELETE',
-                headers: this._getHeaders()
-            });
+            const response = await axios.delete(
+                `${API_BASE_URL}/category/delete`,
+                this._getConfig({
+                    params: { id }
+                })
+            );
             return this._handleResponse(response);
         } catch (error) {
-            console.error('删除分类失败:', error);
-            throw error;
+            this._handleError(error);
         }
     }
 
@@ -193,14 +223,16 @@ export default class CategoryService {
      */
     async checkCategoryNameExists(name) {
         try {
-            const response = await fetch(`${API_BASE_URL}/category/check-name?name=${encodeURIComponent(name)}`, {
-                headers: this._getHeaders()
-            });
-            const result = await this._handleResponse(response);
+            const response = await axios.get(
+                `${API_BASE_URL}/category/check-name`,
+                this._getConfig({
+                    params: { name }
+                })
+            );
+            const result = this._handleResponse(response);
             return result.exists || false;
         } catch (error) {
-            console.error('检查分类名称失败:', error);
-            throw error;
+            this._handleError(error);
         }
     }
 }

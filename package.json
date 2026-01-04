@@ -9,9 +9,6 @@
         "preview": "nuxt preview",
         "postinstall": "nuxt prepare"
     },
-    "engines": {
-        "node": "16.9.0"
-    },
     "dependencies": {
         "@bg-dev/nuxt-naiveui": "^2.0.0-rc.5",
         "@heroicons/vue": "^2.2.0",
@@ -20,6 +17,7 @@
         "@vueuse/head": "^2.0.0",
         "@wangeditor/editor": "^5.1.23",
         "@wangeditor/editor-for-vue": "^5.1.12",
+        "@wangeditor/plugin-md": "^1.0.0",
         "axios": "^1.8.4",
         "bcryptjs": "^3.0.2",
         "compressorjs": "^1.2.1",
@@ -35,9 +33,14 @@
         "vue-router": "^4.5.0"
     },
     "devDependencies": {
+        "@nuxtjs/color-mode": "^3.5.2",
         "@nuxtjs/tailwindcss": "^6.13.2",
         "@tailwindcss/typography": "^0.5.16",
+        "@types/node": "^22.15.17",
+        "@types/rss": "^0.0.32",
         "@vicons/ionicons5": "^0.13.0",
-        "naive-ui": "^2.41.0"
+        "naive-ui": "^2.41.0",
+        "nuxt-module-feed": "^1.1.4",
+        "rss": "^1.2.2"
     }
 }
