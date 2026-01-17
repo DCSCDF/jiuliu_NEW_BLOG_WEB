@@ -1,20 +1,22 @@
 <template>
     <div class="flex flex-col min-h-screen h-full bg-white/50 dark:bg-gray-800/60 md:mx-10 xl:mx-40">
         <div class="flex-1">
-            <appheader></appheader>
-            <Heros></Heros>
+
+            <Header></Header>
+
             <div class="container md:px-6 py-5 mx-auto">
                 <div class="flex 2xl:flex-row flex-col-reverse gap-6">
-                    <!-- 主内容区域 -->
+                    <!-- Main content area -->
                     <div class="2xl:w-3/5">
                         <div class="m-4">
-                            <Blogcard :search-keyword="searchKeyword"></Blogcard>
+                            <!-- Removed blog card component -->
+                            <!-- <Blogcard :search-keyword="searchKeyword"></Blogcard> -->
                         </div>
                     </div>
 
-                    <!-- 侧边栏区域 -->
+                    <!-- Sidebar area -->
                     <div class="2xl:w-2/5 2xl:my-20">
-                        <!-- 移动端悬浮按钮 -->
+                        <!-- Mobile floating button -->
                         <button
                             class="fixed bottom-12 right-10 2xl:hidden z-50 px-5 py-3 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 hover:shadow-xl flex items-center space-x-1"
                             @click="toggleSidebar">
@@ -29,15 +31,13 @@
                                 class="text-sm pt-1 font-bold text-gray-500 dark:text-gray-300 whitespace-nowrap tracking-wide leading-tight">侧边栏</span>
                         </button>
 
-
-
-                        <!-- 侧边栏内容 -->
+                        <!-- Sidebar content -->
                         <div :class="[
                             '2xl:sticky 2xl:top-20 2xl:self-start',
                             'fixed inset-0 z-40 2xl:z-0 bg-white/80 dark:bg-gray-800/80 2xl:bg-white/0 2xl:dark:bg-gray-900/0 backdrop-blur-md 2xl:backdrop-blur-none transition-transform duration-300 ease-in-out 2xl:transform-none',
                             mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
                         ]">
-                            <!-- 关闭按钮 (移动端) -->
+                            <!-- Close button (mobile) -->
                             <button class="absolute top-4 right-4 p-2 2xl:hidden text-gray-800 dark:text-gray-200"
                                 @click="toggleSidebar">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -49,106 +49,32 @@
 
                             <div
                                 class="mx-3 h-full overflow-y-auto p-6 2xl:p-0 2xl:max-h-[calc(100vh-5rem)] 2xl:overflow-y-auto">
-                                <Sidebar @search="handleSearch"></Sidebar>
+                                <!-- Removed sidebar component -->
+                                <!-- <Sidebar @search="handleSearch"></Sidebar> -->
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref } from 'vue'
 
-const searchKeyword = ref('');
-const mobileSidebarOpen = ref(false);
 
-const handleSearch = (keyword) => {
-    searchKeyword.value = keyword;
-};
+// 控制移动端侧边栏是否打开
+const mobileSidebarOpen = ref(false)
 
+// 切换侧边栏显示状态
 const toggleSidebar = () => {
-    mobileSidebarOpen.value = !mobileSidebarOpen.value;
-    updateBodyOverflow();
-};
+    mobileSidebarOpen.value = !mobileSidebarOpen.value
+}
 
-// 统一处理滚动状态
-const updateBodyOverflow = () => {
-    // 如果是移动端且侧边栏打开，则禁止滚动
-    const isMobile = window.innerWidth < 1280; // 2xl断点
-    if (isMobile && mobileSidebarOpen.value) {
-        document.body.style.overflow = 'hidden';
-    } else {
-        document.body.style.overflow = '';
-    }
-};
-
-// 处理窗口大小变化
-const handleResize = () => {
-    // 如果切换到桌面端(>=1280px)，自动关闭侧边栏
-    if (window.innerWidth >= 1280) {
-        mobileSidebarOpen.value = false;
-    }
-    updateBodyOverflow();
-};
-
-onMounted(() => {
-    window.addEventListener('resize', handleResize);
-});
-
-onUnmounted(() => {
-    window.removeEventListener('resize', handleResize);
-    document.body.style.overflow = ''; // 确保卸载时恢复滚动
-});
-
-
-
-const SEO = await getSeoConfig();
-useHead(() => ({
-    title: `${SEO.title} - 博客主页`,
-    meta: [
-        {
-            name: 'description',
-            content: `${SEO.title}博客主页，这里展示最新的博客文章。`
-        },
-        {
-            name: 'keywords',
-            content: SEO.keywords.join(', ')
-        },
-        { name: 'robots', content: 'index, follow' },
-        // Open Graph 元数据
-        { property: 'og:title', content: `${SEO.title}博客主页` },
-
-        { property: 'og:type', content: 'article' },
-        { property: 'og:url', content: `${SEO.url}` },
-    ],
-    link: [
-        { rel: 'canonical', href: `${SEO.url}` }
-    ]
-}))
+// 可选：点击侧边栏外区域关闭（进阶体验）
+// 如果需要该功能，可监听点击事件并判断是否在侧边栏内
 </script>
 
-<style scoped>
-/* 改进悬浮按钮样式 */
-.floating-button {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transition: all 0.2s ease;
-}
-
-.floating-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-}
-
-/* 调整移动端侧边栏样式 */
-@media (max-width: 1279px) {
-    .sidebar-content {
-        width: 80%;
-        max-width: 300px;
-        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-    }
-}
-</style>
-
+<style scoped></style>

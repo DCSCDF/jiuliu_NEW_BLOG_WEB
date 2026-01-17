@@ -1,146 +1,51 @@
 <template>
-
-    <n-dialog-provider>
-        <n-config-provider>
-            <n-message-provider>
-                <NuxtPage>
-                </NuxtPage>
-            </n-message-provider>
-        </n-config-provider>
-    </n-dialog-provider>
-
+    <NuxtPage />
 </template>
-<script setup>
 
+<script setup>
 console.info("%c jiuliuTOP %c v1.0 ", "padding: 2px 6px; border-radius: 3px 0 0 3px; color: #fff; background: #FF6699; font-weight: bold;", "padding: 2px 6px; border-radius: 0 3px 3px 0; color: #fff; background: #FF9999; font-weight: bold;")
+
 
 </script>
 
 <style>
-@import './public/Comment/Comment.css';
+/* 先导入字体，再导入其他样式 */
+@import './assets/Comment/Comment.css';
+@import './assets/Comment/style.css';
 
+/* 字体定义 - 放在最前面 */
 @font-face {
     font-family: 'MyCustomFont';
-    src: url('@/public/ZhiyiMaru-Regular.ttf') format('woff2');
-
+    src: url('./assets/ZhiyiMaru-Regular.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
+    font-display: swap;
+        /* 重要：控制字体加载时的显示方式 */
 }
 
+/* 应用到 body */
 body {
-    font-family: 'MyCustomFont', sans-serif;
-}
-
-/* 深色模式适配 */
-/* 默认浅色主题 */
-:root {
-    --twikoo-text-color: #333;
-    /* --twikoo-bg-color: #fff; */
-    --twikoo-border-color: #dcdfe6;
-    --twikoo-card-bg: #f5f7fa;
-}
-
-/* 深色主题 - 通过[data-theme="dark"]或系统偏好应用 */
-[data-theme="dark"],
-.dark {
-    --twikoo-text-color: #e5e7eb;
-    /* --twikoo-bg-color: #1a1a1a; */
-    --twikoo-border-color: #ffffff5b;
-    --twikoo-card-bg: #22222200;
-}
-
-/* 系统偏好深色模式 - 仅当用户未手动选择主题时应用 */
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme]) {
-        --twikoo-text-color: #e5e7eb;
-        /* --twikoo-bg-color: #1a1a1a; */
-        --twikoo-border-color: #ffffff5b;
-        --twikoo-card-bg: #22222200;
-    }
-}
-
-/* 应用样式 */
-.twikoo {
-    color: var(--twikoo-text-color);
-    background-color: var(--twikoo-bg-color);
-    transition: color 0.3s, background-color 0.3s;
-}
-
-.twikoo .el-input__inner,
-.twikoo .el-textarea__inner {
-    color: var(--twikoo-text-color);
-    background-color: var(--twikoo-card-bg);
-    border-color: var(--twikoo-border-color);
-    transition: all 0.3s;
-}
-
-.tk-admin {
-    background-color: rgba(0, 0, 0, 0.8);
-}
-
-.tk-comment,
-.tk-expand,
-.tk-comments-count,
-.tk-comments-no,
-.tk-submit {
-    color: var(--twikoo-text-color);
-}
-
-.tk-tag {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.tk-preview-container {
-    border-color: var(--twikoo-border-color);
-}
-
-/* 主题切换过渡效果 */
-.theme-transition * {
-    transition: color 0.3s, background-color 0.3s, border-color 0.3s !important;
+    font-family: 'MyCustomFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+        font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+        /* 改善字体渲染 */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
 }
 
 
-body {
-    background: #3939390c;
+/* 确保所有元素都继承字体 */
+*,
+*::before,
+*::after {
+    font-family: inherit;
 }
 
 /* 代码块基础样式 */
 pre[class*="language-"] {
     background: #1f2937 !important;
-}
-
-.fade-in {
-    animation: fadeIn 0.5s ease-out forwards;
-}
-
-.n-config-provider {
-    --n-body-color: #ffffff !important;
-    --n-text-color-base: #1f2937 !important;
-
-    /* 覆盖所有深色模式变量 */
-    [data-theme="dark"] {
-        display: none !important;
-    }
-}
-
-/* Naive UI 模态框和抽屉的特殊处理 */
-.n-modal,
-.n-drawer {
-    --n-scrollbar-width: 10px;
-    /* 与滚动条宽度一致 */
-}
-
-/* 防止模态框内容被滚动条覆盖 */
-.n-modal-container,
-.n-drawer-container {
-    padding-right: var(--n-scrollbar-width);
-}
-
-/* 修复 Naive UI 模态框滚动条问题 */
-.n-modal-body-wrapper,
-.n-drawer-content-wrapper {
-    scrollbar-gutter: auto;
-    /* 重置模态框内部的滚动条处理 */
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace !important;
+        /* 代码块保持等宽字体 */
 }
 
 /* 确保 body 元素正确处理滚动条 */
@@ -149,28 +54,11 @@ body {
     /* 防止水平滚动 */
 }
 
-
-.theme-transition *,
-.theme-transition *::before,
-.theme-transition *::after {
-    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-}
-
-/* 图标容器样式 */
-.relative.w-5.h-5 svg {
-    transition: opacity 0.3s ease;
-}
-
-.rotate-180 {
-    transform: rotate(180deg);
-}
-
 /* 滚动条整体部分 */
 ::-webkit-scrollbar {
     width: 5px;
     height: 4px;
 }
-
 
 /* 滚动条轨道部分 */
 ::-webkit-scrollbar-track {
@@ -178,13 +66,11 @@ body {
     border-radius: 4px;
 }
 
-
 /* 滚动条滑块部分 */
 ::-webkit-scrollbar-thumb {
     background: #8888882c;
     border-radius: 4px;
 }
-
 
 /* 滚动条滑块:hover */
 ::-webkit-scrollbar-thumb:hover {

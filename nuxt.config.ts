@@ -2,6 +2,16 @@ import { defineNuxtConfig } from 'nuxt/config'
 import typography from '@tailwindcss/typography'
 
 export default defineNuxtConfig({
+    //运行时候的变量环境
+    runtimeConfig: {
+        //服务器端读取
+        public: {
+            //服务器和客户端可以读取
+            apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL
+        }
+    },
+
+
 
     app: {
         pageTransition: { name: 'page', mode: 'out-in' },
@@ -62,9 +72,6 @@ export default defineNuxtConfig({
             }
         }
     },
-    devServer: {
-        port: 3001,
-        host: '0.0.0.0'
-    },
+
     compatibilityDate: '2025-04-21'
 })

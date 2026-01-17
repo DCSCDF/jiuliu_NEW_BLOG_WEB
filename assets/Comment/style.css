@@ -1,0 +1,67 @@
+/* 深色模式适配 */
+/* 默认浅色主题 */
+:root {
+    --twikoo-text-color: #333;
+    /* --twikoo-bg-color: #fff; */
+    --twikoo-border-color: #dcdfe6;
+    --twikoo-card-bg: #f5f7fa;
+}
+
+/* 深色主题 - 通过[data-theme="dark"]或系统偏好应用 */
+[data-theme="dark"],
+.dark {
+    --twikoo-text-color: #e5e7eb;
+    /* --twikoo-bg-color: #1a1a1a; */
+    --twikoo-border-color: #ffffff5b;
+    --twikoo-card-bg: #22222200;
+}
+
+/* 系统偏好深色模式 - 仅当用户未手动选择主题时应用 */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+        --twikoo-text-color: #e5e7eb;
+        /* --twikoo-bg-color: #1a1a1a; */
+        --twikoo-border-color: #ffffff5b;
+        --twikoo-card-bg: #22222200;
+    }
+}
+
+/* 应用样式 */
+.twikoo {
+    color: var(--twikoo-text-color);
+    background-color: var(--twikoo-bg-color);
+    transition: color 0.3s, background-color 0.3s;
+}
+
+.twikoo .el-input__inner,
+.twikoo .el-textarea__inner {
+    color: var(--twikoo-text-color);
+    background-color: var(--twikoo-card-bg);
+    border-color: var(--twikoo-border-color);
+    transition: all 0.3s;
+}
+
+.tk-admin {
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+.tk-comment,
+.tk-expand,
+.tk-comments-count,
+.tk-comments-no,
+.tk-submit {
+    color: var(--twikoo-text-color);
+}
+
+.tk-tag {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.tk-preview-container {
+    border-color: var(--twikoo-border-color);
+}
+
+/* 主题切换过渡效果 */
+.theme-transition * {
+    transition: color 0.3s, background-color 0.3s, border-color 0.3s !important;
+}

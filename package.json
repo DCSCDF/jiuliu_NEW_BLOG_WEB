@@ -3,8 +3,8 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "nuxt build",
-        "dev": "nuxt dev",
+        "build": "nuxt build --dotenv .env.production",
+        "dev": "nuxt dev --dotenv .env.development",
         "generate": "nuxt generate",
         "preview": "nuxt preview",
         "postinstall": "nuxt prepare"
@@ -23,6 +23,8 @@
         "compressorjs": "^1.2.1",
         "crypto-es": "^1.2.7",
         "crypto-js": "^4.1.1",
+        "dotenv": "^17.2.3",
+        "jsencrypt": "^3.5.4",
         "nitro": "^0.0.0",
         "nohup": "^0.1.0",
         "nuxt": "^3.16.2",

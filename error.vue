@@ -71,13 +71,13 @@
         </div>
 
         <!-- 联系支持 -->
-        <div class="mt-12 text-center flex items-center justify-center gap-1">
+        <!-- <div class="mt-12 text-center flex items-center justify-center gap-1">
             <p class="text-gray-500">需要帮助？</p>
             <a href="mailto:3209174373@qq.com"
                 class="text-blue-600 hover:underline hover:text-blue-800 transition-colors">
                 联系博主
             </a>
-        </div>
+        </div> -->
     </div>
 </template>
 
@@ -121,13 +121,13 @@ const errorTitle = computed(() => {
 const errorDescription = computed(() => {
     switch (props.error.statusCode) {
         case 404:
-            return '您访问的页面可能已被移除、重命名或暂时不可用'
+            return '您访问的页面可能已被移除、重命名或暂时不可用。'
         case 500:
-            return '服务器遇到意外情况，无法完成您的请求'
+            return '服务器遇到意外情况，无法完成您的请求。'
         case 403:
-            return '您没有权限访问此页面'
+            return '您没有权限访问此页面。'
         default:
-            return props.error.statusMessage || '已收到通知，正在处理此问题'
+            return props.error.statusMessage || '已收到通知，正在处理此问题。'
     }
 })
 
