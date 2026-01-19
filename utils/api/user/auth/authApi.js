@@ -36,96 +36,214 @@ class AdminService {
             console.log('正在获取 RSA 公钥，URL:', this.axiosInstance.defaults.baseURL + '/api/auth/public-key')
 
             const response = await this.axiosInstance.get('/api/auth/public-key')
-
             console.log('公钥接口原始响应:', response)
 
-            const publicKey = response?.publicKey
+            // 检查是否为429错误（请求过于频繁）
+            if (response?.data?.code === 429) {
+                const errorMsg = response.data.msg;
+                console.warn('公钥接口频率限制:', errorMsg);
 
-            if (!publicKey || typeof publicKey !== 'string' || publicKey.length < 100) {
-                throw new Error('无效的公钥数据')
+                // 创建429错误对象
+                const rateLimitError = new Error(errorMsg);
+                rateLimitError.response = {
+                    status: 429,
+                    data: response.data
+                };
+                throw rateLimitError;
             }
 
-            console.log('成功获取公钥 (前60字符):', publicKey.substring(0, 60) + '...')
-            return publicKey
+            const responseData = response.data.data;
+            const { tempToken, publicKey } = responseData;
+
+            // 返回包含公钥和临时令牌的对象
+            return {
+                publicKey,
+                tempToken
+            }
         } catch (error) {
             console.error('获取公钥失败:', error)
+
+            // 统一使用API返回的错误消息
+            const errorMessage = error.response?.data?.msg
+
             showError({
-                statusCode: 500,
-                statusMessage: '获取公钥失败',
-                message: error,
+                statusCode: error.response?.data?.code,
+                statusMessage: errorMessage,
+                message: errorMessage,
                 fatal: false
-            })
-            if (error.response) {
-                console.error('公钥接口错误响应:', error.response)
-            }
-            throw new Error('无法获取加密公钥，请刷新页面重试')
+            });
+
+            throw error;
         }
     }
+
 
 
     /**
      * 用户登录（密码必须已加密或为明文）
      * @param {string} username - 用户名
-     * @param {string} encryptedPassword - 已加密的密码（或明文，若未启用加密）
+     * @param {string} encryptedPassword - 已加密的密码
+     * @param {string} tempToken - 临时令牌
      * @returns {Promise<Object>} 登录响应数据
      */
-    async login(username, encryptedPassword) {
+    async login(username, encryptedPassword, tempToken = null) {
         if (!username || !encryptedPassword) {
             throw new Error('用户名和密码不能为空')
         }
 
         try {
             console.log('正在登录，用户名:', username.trim())
+            if (tempToken) {
+                console.log('使用临时令牌登录，令牌:', tempToken.substring(0, 20) + '...')
+            }
             console.log('请求URL:', this.axiosInstance.defaults.baseURL + '/api/auth/login')
 
-            const userData = await this.axiosInstance.post('/api/auth/login', {
+            // 构建请求体
+            const requestBody = {
                 username: username.trim(),
-                password: encryptedPassword // 直接使用传入的密码（应已加密）
-            })
-
-            console.log('登录响应:', userData)
-
-            if (!userData?.username) {
-                throw new Error('登录响应缺少用户信息')
+                password: encryptedPassword
             }
 
-            this.saveUserData({
-                username: userData.username,
-                updateTime: userData.updateTime
+            if (tempToken) {
+                requestBody.tempToken = tempToken
+            }
+
+            console.log('登录请求体:', {
+                username: requestBody.username,
+                tempToken: tempToken ? tempToken.substring(0, 20) + '...' : '未提供',
+                password: '[已加密]'
             })
 
-            return userData
+            const response = await this.axiosInstance.post('/api/auth/login', requestBody)
+            console.log('登录接口原始响应:', response)
+
+            // 修复：从response.data中获取业务状态码
+            const responseData = response.data
+            const businessCode = responseData?.code
+            const businessMsg = responseData?.msg
+
+            console.log('业务状态码:', businessCode, '消息:', businessMsg)
+
+            // 检查业务状态码
+            if (businessCode === 400) {
+                console.warn('用户名或密码错误，业务状态码400:', businessMsg)
+
+                const loginError = new Error(businessMsg)
+                loginError.response = {
+                    status: 400,
+                    data: responseData
+                }
+                throw loginError
+            }
+
+            if (businessCode !== 200) {
+                const errorMsg = businessMsg
+                console.error('登录业务状态码异常:', businessCode, errorMsg)
+
+                const loginError = new Error(errorMsg)
+                loginError.response = {
+                    status: businessCode || 500,
+                    data: responseData
+                }
+                throw loginError
+            }
+
+            // 提取登录成功数据
+            const loginData = responseData?.data
+            if (!loginData) {
+                console.warn('登录成功但返回数据为空')
+            } else {
+                console.log('登录成功，令牌:', loginData.token ? loginData.token.substring(0, 20) + '...' : '无令牌')
+            }
+
+            // 保存用户数据（保存用户名到本地存储）
+            this.saveUserData({
+                username: username.trim(),
+                token: loginData?.token, // 保存token
+                updateTime: new Date().toISOString()
+            })
+
+            return loginData
         } catch (error) {
             console.error('登录失败:', error.message)
 
             if (error.response) {
-                console.error('登录错误响应:', error.response.data)
+                console.error('登录错误响应详情:', {
+                    状态码: error.response.status,
+                    业务码: error.response.data?.code,
+                    消息: error.response.data?.msg
+                })
             }
+
             this.clearUserData()
             throw error
         }
     }
 
-
-
     async getUserProfile() {
         try {
             console.log('获取用户资料，URL:', this.axiosInstance.defaults.baseURL + '/api/auth/profile')
 
-            const profile = await this.axiosInstance.get('/api/auth/profile')
+            const response = await this.axiosInstance.get('/api/auth/profile')
+            console.log('用户资料获取成功:', response)
 
-            console.log('用户资料获取成功:', profile)
+            // 检查业务状态码
+            if (response?.code === 401) {
+                console.warn('用户未登录，业务状态码401:', response.msg)
+                this.clearUserData()
 
-            this.saveProfile(profile)
-            return profile
-        } catch (error) {
-            console.error('获取用户资料失败:', error)
-            if (error.response) {
-                console.error('用户资料响应:', error.response.status, error.response.data)
+                // 创建统一的错误对象
+                const authError = new Error(response.msg)
+                authError.response = {
+                    status: 401,
+                    data: response
+                }
+                throw authError
             }
 
-            if (error.status === 401 || error.response?.status === 401) {
-                this.clearUserData()
+            // 检查是否为成功状态码
+            if (response?.code !== 200) {
+                const errorMsg = response?.msg
+                console.error('业务状态码异常:', response?.code, errorMsg)
+                throw new Error(errorMsg)
+            }
+
+            // 提取用户数据
+            const userProfile = response?.data
+            if (!userProfile) {
+                console.warn('用户数据为空，但状态码为200')
+            } else {
+                console.log('解析到的用户数据:', {
+                    id: userProfile.id,
+                    username: userProfile.username,
+                    nickname: userProfile.nickname
+                })
+            }
+
+            // 保存用户资料
+            this.saveProfile(userProfile)
+            return userProfile
+
+        } catch (error) {
+            console.error('获取用户资料失败:', error)
+
+            if (error.response) {
+                console.error('用户资料响应详情:', {
+                    状态码: error.response.status,
+                    业务码: error.response.data?.code,
+                    消息: error.response.data?.msg
+                })
+
+                // 处理401未授权（包括HTTP状态码和业务状态码）
+                if (error.response.data?.code === 401) {
+                    console.log('检测到未授权，清除用户数据')
+                    this.clearUserData()
+
+                    // 重定向到登录页
+                    if (typeof window !== 'undefined') {
+                        window.location.href = '/'
+                    }
+                }
             }
 
             throw error

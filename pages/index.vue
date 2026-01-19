@@ -35,7 +35,7 @@
                 </div>
 
               <!-- 登录表单 -->
-                <form class="mt-6 space-y-10" @submit="submitForm">
+               <form class="mt-16 space-y-8" @submit="submitForm">
                     <!-- 用户名输入框 -->
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -51,7 +51,7 @@
                             :class="{ 'cursor-not-allowed bg-gray-100 dark:bg-gray-700': hasSavedCredentials }"
                             :readonly="hasSavedCredentials" />
                    </div>
-                   <!-- 密码输入框 -->
+                    <!-- 密码输入框 -->
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <svg class="w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24"
@@ -60,7 +60,7 @@
                                     d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                             </svg>
                        </div>
-                       <input id="password" :type="passwordType" required v-model="password"
+                        <input id="password" :type="passwordType" required v-model="password"
                             class="block w-full pl-10 pr-12 py-3 text-gray-700 bg-white border border-gray-300 rounded-lg dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-500 focus:outline-none transition-colors duration-300"
                             :placeholder="hasSavedCredentials ? '已保存密码' : '请输入密码'"
                             :class="{ 'cursor-not-allowed bg-gray-100 dark:bg-gray-700': hasSavedCredentials }"
@@ -75,7 +75,7 @@
                             </svg>
                         </button>
                    </div>
-                   <!-- 记住密码选项 -->
+                    <!-- 记住密码选项 -->
                     <div class="flex items-center justify-between mt-4">
                         <label class="flex items-center cursor-pointer">
                             <input type="checkbox" v-model="rememberMe"
@@ -90,7 +90,7 @@
                    </div>
 
                   <!-- 登录按钮 -->
-                    <button type="submit" :disabled="cooldown || loading"
+                   <button type="submit" :disabled="loading"
                         class="w-full px-6 py-3 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-blue-600 rounded-lg hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                         :class="{
                             'bg-green-600 hover:bg-green-500 focus:ring-green-300': hasSavedCredentials
@@ -120,14 +120,14 @@
                             </a>
                         </span>
                    </div>
-               </form>
-           </div>
-       </div>
+                </form>
+            </div>
+        </div>
     </section>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import AdminService from '../utils/api/user/auth/authApi'
 import { useRuntimeConfig } from '#app'
@@ -145,8 +145,6 @@ const username = ref('')
 const password = ref('')
 const rememberMe = ref(false)
 const loading = ref(false)
-const cooldown = ref(false)
-const cooldownTime = ref(0)
 const passwordType = ref('password')
 
 // 控制 UI 状态
@@ -164,9 +162,6 @@ const getButtonText = () => {
     if (hasSavedCredentials.value) return '使用保存的账户登录'
     return '立即登录'
 }
-
-// 其余的业务逻辑保持不变（与原始代码相同）
-const remainingMinutes = computed(() => Math.ceil(cooldownTime.value / 60))
 
 const STORAGE_KEYS = {
     USERNAME: 'savedUsername',
@@ -205,15 +200,6 @@ const clearSavedCredentials = () => {
 onMounted(async () => {
     if (import.meta.server) return
     loadSavedCredentials()
-
-    try {
-        const status = await adminService.checkLoginStatus()
-        if (status.isLoggedIn) {
-            router.push('/user/dashboard')
-        }
-    } catch (error) {
-        console.warn('检查登录状态时出错，继续显示登录页:', error.message)
-    }
 })
 
 // 监听 rememberMe 变化
@@ -227,6 +213,7 @@ watch(rememberMe, (newVal) => {
 const handleLogin = async () => {
     let finalUsername = username.value.trim()
     let finalPassword = password.value
+    let tempToken = null
 
     if (usingSavedCredentials.value) {
         const savedPass = localStorage.getItem(STORAGE_KEYS.ENCRYPTED_PASSWORD)
@@ -236,6 +223,16 @@ const handleLogin = async () => {
             return
         }
         finalPassword = savedPass
+
+        if (isEncryptionEnabled()) {
+            try {
+                const { publicKey, tempToken: token } = await adminService.getPublicKey()
+                tempToken = token
+                console.log('获取临时令牌:', tempToken ? '成功' : '无令牌')
+            } catch (encryptError) {
+                console.warn('获取临时令牌失败，但尝试使用保存的密码继续:', encryptError.message)
+            }
+        }
     } else {
         if (!finalUsername || !finalPassword) {
             showNotification('请输入用户名和密码')
@@ -244,13 +241,15 @@ const handleLogin = async () => {
 
         if (isEncryptionEnabled()) {
             try {
-                const publicKey = await adminService.getPublicKey()
+                const { publicKey, tempToken: token } = await adminService.getPublicKey()
+                tempToken = token
+                console.log('获取临时令牌:', tempToken ? '成功' : '无令牌')
                 finalPassword = await encryptWithRSA(finalPassword, publicKey)
                 console.log('密码加密成功，密文长度:', finalPassword.length)
             } catch (encryptError) {
                 loading.value = false
                 console.error('密码加密失败:', encryptError)
-                showNotification(encryptError)
+                showNotification(encryptError.message)
                 return
             }
         }
@@ -258,7 +257,15 @@ const handleLogin = async () => {
 
     try {
         loading.value = true
-        await adminService.login(finalUsername, finalPassword)
+
+        // 修复：调用实际的登录接口
+        if (tempToken) {
+            console.log('使用临时令牌进行登录')
+            await adminService.login(finalUsername, finalPassword, tempToken)
+        } else {
+            console.log('不使用临时令牌进行登录')
+            await adminService.login(finalUsername, finalPassword)
+        }
 
         showNotification('登录成功！', 'success')
 
@@ -268,32 +275,38 @@ const handleLogin = async () => {
             clearSavedCredentials()
         }
 
-        router.push('/user/dashboard')
+
+        router.push('/dashboard')
     } catch (error) {
         loading.value = false
         clearSavedCredentials()
 
+        // 修复：改进错误处理逻辑
         let message = '网络异常，请检查连接'
-        let isCooldown = false
 
         if (error.response) {
             const { status, data } = error.response
-            if (status === 429) {
-                message = '登录尝试次数过多，请稍后再试'
-                isCooldown = true
+            console.error('登录错误详情:', { status, data })
+
+            if (status === 429 || data?.code === 429) {
+                message = data?.msg
+            } else if (data?.code === 401) {
+                message = data?.msg
+            } else if (data?.code === 400) {
+                message = data?.msg
+            } else if (data?.msg) {
+                message = data.msg
             } else {
                 message = data?.message
             }
         } else if (error.request) {
             message = '服务器无响应，请稍后再试'
+        } else {
+            message = error.message
         }
+
         showNotification(message)
     }
-}
-
-// 记住密码切换
-const toggleRememberMe = () => {
-    rememberMe.value = !rememberMe.value
 }
 
 // 表单提交
