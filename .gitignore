@@ -18,6 +18,5 @@ logs
 .fleet
 .idea
 
-.env.development
-.env.production
+.env
 .vscode

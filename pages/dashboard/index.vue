@@ -219,15 +219,12 @@
 </template>
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import AdminService from '../../utils/api/user/auth/authApi' // 注意：导入的是类，不是单例
+import AdminService from '@/api/auth/authApi' // 注意：导入的是类，不是单例
 
 const runtimeconfig = useRuntimeConfig()
-const router = useRouter()
 
 const API_BASE_URL = runtimeconfig.public.apiBaseUrl
 console.log("传入的API_BASE_URL:", API_BASE_URL)
-
 const adminService = new AdminService(API_BASE_URL)
 
 // 状态管理
@@ -298,7 +295,7 @@ const confirmLogout = async () => {
         console.error('登出过程中发生错误:', error)
         adminService.clearUserData()
         if (typeof window !== 'undefined') {
-            window.location.href = '/user'
+            window.location.href = '/'
         }
     } finally {
         logoutPending.value = false
@@ -310,66 +307,6 @@ const cancelLogout = () => {
     showLogoutConfirm.value = false
 }
 
-// 检查登录状态 - 修改为使用getUserProfile
-onMounted(async () => {
-    if (import.meta.server) return
-
-    try {
-        // 使用getUserProfile代替checkLoginStatus
-        const userProfile = await adminService.getUserProfile()
-
-        console.log('用户已登录，用户信息:', {
-            username: userProfile.username,
-            nickname: userProfile.nickname
-        })
-
-        // 登录成功，继续加载内容
-        setTimeout(() => {
-            contentLoaded.value = true
-        }, 300)
-
-    } catch (error) {
-        console.error('初始化认证失败:', error)
-
-        // 根据错误类型处理
-        if (error.response?.data?.code === 401 || error.response?.status === 401) {
-            // 401未登录，跳转到登录页
-            console.log('用户未登录，跳转到登录页')
-
-            showError({
-                statusCode: 401,
-                statusMessage: '未登录',
-                message: '请先登录以访问此页面',
-                fatal: false
-            })
-
-            // 延迟跳转，让用户看到错误提示
-            setTimeout(() => {
-                if (typeof window !== 'undefined') {
-                    window.location.href = '/user/login'
-                }
-            }, 1500)
-
-        } else if (error.response?.status === 403) {
-            // 403无权限
-            showError({
-                statusCode: 403,
-                statusMessage: '无访问权限',
-                message: '您没有权限访问此页面',
-                fatal: false
-            })
-
-        } else {
-            // 其他错误
-            showError({
-                statusCode: error?.response?.status || 500,
-                statusMessage: '认证失败',
-                message: error?.response?.data?.msg || '检查登录状态时发生错误',
-                fatal: false
-            })
-        }
-    }
-})
 </script>
 
 <style>

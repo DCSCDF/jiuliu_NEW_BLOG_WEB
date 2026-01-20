@@ -2,8 +2,8 @@
    <section class="bg-white dark:bg-gray-900 min-h-screen flex items-center justify-center">
         <div class="container mx-auto px-6 py-8">
             <!-- 通知组件 -->
-            <Notification v-model:show="notification.show" :type="notification.type" :title="notification.title"
-                :message="notification.message" :duration="notification.duration" @close="clearNotification" />
+           <!-- <Notification v-model:show="notification.show" :type="notification.type" :title="notification.title"
+                :message="notification.message" :duration="notification.duration" @close="clearNotification" /> -->
 
           <div class="w-full max-w-md mx-auto">
                 <!-- Logo/标题区域 -->
@@ -35,7 +35,7 @@
                 </div>
 
               <!-- 登录表单 -->
-               <form class="mt-16 space-y-8" @submit="submitForm">
+                <form class="mt-16 space-y-8" @submit="submitForm">
                     <!-- 用户名输入框 -->
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -90,7 +90,7 @@
                    </div>
 
                   <!-- 登录按钮 -->
-                   <button type="submit" :disabled="loading"
+                    <button type="submit" :disabled="loading"
                         class="w-full px-6 py-3 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-blue-600 rounded-lg hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                         :class="{
                             'bg-green-600 hover:bg-green-500 focus:ring-green-300': hasSavedCredentials
@@ -127,12 +127,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, reactive } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import AdminService from '../utils/api/user/auth/authApi'
+import AdminService from '@/api/auth/authApi'
 import { useRuntimeConfig } from '#app'
-// 导入 RSA 加密工具
-import { encryptWithRSA, isEncryptionEnabled } from '../utils/api/rsa'
+import { encryptWithRSA, isEncryptionEnabled } from '@/utils/encryption'
+// 导入通知工具
+import { notify } from '@/utils/notification'
 
 // 初始化
 const runtimeConfig = useRuntimeConfig()
@@ -218,7 +219,7 @@ const handleLogin = async () => {
     if (usingSavedCredentials.value) {
         const savedPass = localStorage.getItem(STORAGE_KEYS.ENCRYPTED_PASSWORD)
         if (!savedPass) {
-            showNotification('保存的密码已丢失，请重新登录')
+            notify.error('保存的密码已丢失，请重新登录')
             clearSavedCredentials()
             return
         }
@@ -235,7 +236,7 @@ const handleLogin = async () => {
         }
     } else {
         if (!finalUsername || !finalPassword) {
-            showNotification('请输入用户名和密码')
+            notify.error('请输入用户名和密码')
             return
         }
 
@@ -249,7 +250,7 @@ const handleLogin = async () => {
             } catch (encryptError) {
                 loading.value = false
                 console.error('密码加密失败:', encryptError)
-                showNotification(encryptError.message)
+                notify.error(encryptError.message || '密码加密失败')
                 return
             }
         }
@@ -258,7 +259,6 @@ const handleLogin = async () => {
     try {
         loading.value = true
 
-        // 修复：调用实际的登录接口
         if (tempToken) {
             console.log('使用临时令牌进行登录')
             await adminService.login(finalUsername, finalPassword, tempToken)
@@ -267,7 +267,7 @@ const handleLogin = async () => {
             await adminService.login(finalUsername, finalPassword)
         }
 
-        showNotification('登录成功！', 'success')
+        notify.success('登录成功！')
 
         if (rememberMe.value) {
             saveCredentials(finalUsername, finalPassword)
@@ -275,39 +275,45 @@ const handleLogin = async () => {
             clearSavedCredentials()
         }
 
-
         router.push('/dashboard')
     } catch (error) {
         loading.value = false
         clearSavedCredentials()
 
-        // 修复：改进错误处理逻辑
+        console.error('登录错误详情:', error)
+
         let message = '网络异常，请检查连接'
 
-        if (error.response) {
-            const { status, data } = error.response
-            console.error('登录错误详情:', { status, data })
-
-            if (status === 429 || data?.code === 429) {
-                message = data?.msg
-            } else if (data?.code === 401) {
-                message = data?.msg
-            } else if (data?.code === 400) {
-                message = data?.msg
-            } else if (data?.msg) {
-                message = data.msg
-            } else {
-                message = data?.message
+        // 详细的错误提取逻辑
+        if (error && typeof error === 'object') {
+            // 1. 优先检查是否是 429 错误
+            if (error.code === 429 || error.status === 429 || error.data?.code === 429) {
+                message = '请求过于频繁，请稍后再试'
             }
-        } else if (error.request) {
-            message = '服务器无响应，请稍后再试'
-        } else {
-            message = error.message
+            // 2. 检查错误消息
+            else if (error.msg) {
+                message = error.msg
+            }
+            else if (error.message) {
+                message = error.message
+            }
+            else if (error.data?.msg) {
+                message = error.data.msg
+            }
         }
 
-        showNotification(message)
+        // 特殊处理网络错误
+        if (message.includes('Network Error')) {
+            message = '网络连接失败，请检查网络设置'
+        }
+        if (message.includes('timeout')) {
+            message = '请求超时，请稍后重试'
+        }
+
+        notify.error(message)
     }
 }
+
 
 // 表单提交
 const submitForm = (e) => {
@@ -315,27 +321,7 @@ const submitForm = (e) => {
     handleLogin()
 }
 
-// 响应式通知状态
-const notification = reactive({
-    show: false,
-    type: '',
-    title: '',
-    message: '',
-    duration: 3000
-})
 
-// 显示通知的方法
-const showNotification = (message, type = 'error') => {
-    notification.type = type
-    notification.title = type === 'error' ? '错误' : '成功'
-    notification.message = message
-    notification.show = true
-}
 
-// 清除通知
-const clearNotification = () => {
-    notification.show = false
-    notification.message = ''
-    notification.title = ''
-}
+
 </script>
